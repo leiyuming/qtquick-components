@@ -7,6 +7,8 @@ Window {
     default property alias container: contentview.children
     property alias contentView: contentview
     property alias windowBorder: windowborder
+    property alias mouseArea: mousearea
+    property bool enableResize: true
     width: 640
     height: 480
     color: "transparent"
@@ -16,7 +18,7 @@ Window {
 
     Rectangle {
         id: windowborder
-        color: "white"
+        color: "transparent"
         anchors.fill: parent
         anchors.margins: 20
         radius: 8
@@ -37,11 +39,13 @@ Window {
         width: windowborder.width; height: windowborder.height
         anchors.centerIn: parent
         MouseArea {
+            id: mousearea
             hoverEnabled: true
             property variant pressPoint: Qt.point(0, 0)
             property int borderWidth: 5
             property string hitType: "center"
             cursorShape: {
+                if (!enableResize) return Qt.ArrowCursor
                 switch (hitType) {
                 case "top-left":
                     break
@@ -66,6 +70,7 @@ Window {
             }
 
             function checkHitType () {
+                if (!enableResize) return "center"
                 if (mouseX < borderWidth) {
                     return mouseY < borderWidth
                             ? "top-left"
@@ -116,10 +121,6 @@ Window {
                     pressPoint.x = mouseX
                     pressPoint.y = mouseY
                     break
-                case "center":
-                    window.x += mouseX - pressPoint.x
-                    window.y += mouseY - pressPoint.y
-                    break
                 case "top-right":
                     break
                 case "bottom-right":
@@ -132,7 +133,10 @@ Window {
                     window.width += mouseX - pressPoint.x
                     pressPoint.x = mouseX
                     pressPoint.y = mouseY
-
+                    break
+                case "center":
+                    window.x += mouseX - pressPoint.x
+                    window.y += mouseY - pressPoint.y
                     break
                 }
             }
