@@ -4,26 +4,50 @@ import QtGraphicalEffects 1.0
 
 Window {
     id: window
-    default property alias container: contentview.children
+//    default property alias container: contentview
     property alias contentView: contentview
     property alias windowBorder: windowborder
     property alias mouseArea: mousearea
     property bool enableResize: true
+    property bool enableShadow: true
     width: 640
     height: 480
     color: "transparent"
     flags: Qt.FramelessWindowHint | Qt.Window
     title: qsTr("Hello World")
-    visible: true
+
+    onEnableShadowChanged: {
+        windowborder.visible = enableShadow
+    }
+
+    property variant showAnimation: ParallelAnimation {
+        running: visible
+        NumberAnimation {
+            target: window
+            property: "opacity"
+            duration: 300
+            from: 0; to: 1
+        }
+        SequentialAnimation {
+            ScriptAction { script: windowBorder.visible = false }
+            NumberAnimation {
+                target: contentView
+                property: "scale"
+                duration: 300
+                from: 0.9; to: 1
+            }
+            ScriptAction { script: windowBorder.visible = true }
+        }
+    }
 
     Rectangle {
         id: windowborder
         color: "transparent"
         anchors.fill: parent
-        anchors.margins: 20
+        anchors.margins: enableShadow ? 20 : 0
         radius: 8
         border { width: 1; color: "gray" }
-        layer.enabled: true
+        layer.enabled: enableShadow
         layer.effect: RectangularGlow {
             id: effect
             anchors.fill: windowborder
@@ -117,22 +141,57 @@ Window {
                 case "top":
                     break
                 case "bottom":
-                    window.height += mouseY - pressPoint.y
-                    pressPoint.x = mouseX
-                    pressPoint.y = mouseY
+                    var temp = window.height + mouseY - pressPoint.y
+                    if (temp < maximumHeight && temp > minimumHeight) {
+                        window.height = temp
+                        pressPoint.y = mouseY
+                    }
+                    else if (temp > maximumHeight) {
+                        window.height = maximumHeight
+                    }
+                    else {
+                        window.height = minimumHeight
+                    }
                     break
                 case "top-right":
                     break
-                case "bottom-right":
-                    window.width += mouseX - pressPoint.x
-                    window.height += mouseY - pressPoint.y
-                    pressPoint.x = mouseX
-                    pressPoint.y = mouseY
+                case "bottom-right": {
+                    var temp = window.width + mouseX - pressPoint.x
+                    if (temp < maximumWidth && temp > minimumWidth) {
+                        window.width = temp
+                        pressPoint.x = mouseX
+                    }
+                    else if (temp > maximumWidth) {
+                        window.width = maximumWidth
+                    }
+                    else {
+                        window.width = minimumWidth
+                    }
+                    temp = window.height + mouseY - pressPoint.y
+                    if (temp < maximumHeight && temp > minimumHeight) {
+                        window.height = temp
+                        pressPoint.y = mouseY
+                    }
+                    else if (temp > maximumHeight) {
+                        window.height = maximumHeight
+                    }
+                    else {
+                        window.height = minimumHeight
+                    }
+                }
                     break
                 case "right":
-                    window.width += mouseX - pressPoint.x
-                    pressPoint.x = mouseX
-                    pressPoint.y = mouseY
+                    var temp = window.width + mouseX - pressPoint.x
+                    if (temp < maximumWidth && temp > minimumWidth) {
+                        window.width = temp
+                        pressPoint.x = mouseX
+                    }
+                    else if (temp > maximumWidth) {
+                        window.width = maximumWidth
+                    }
+                    else {
+                        window.width = minimumWidth
+                    }
                     break
                 case "center":
                     window.x += mouseX - pressPoint.x
